@@ -1,0 +1,138 @@
+{#
+ Format Phone Numbers
+
+ {{ macros.phone('8220000000') }}
+ Outputs:
+ <a href="tel:8220000000" class="default" aria-label="8 2 2 . 0 0 0 . 0 0 0 0 . ">(822)&nbsp;000-0000</a>
+
+ ----
+ {{ macros.phone('8220000000', false) }}
+ Outputs:
+ (822)&nbsp;000-0000
+
+ ----
+ {{ macros.phone('8220000000', 'text-blue-500') }}
+ Outputs:
+ (822)&nbsp;000-0000
+ <a href="tel:8220000000" class="text-blue-500" aria-label="8 2 2 . 0 0 0 . 0 0 0 0 . ">(822)&nbsp;000-0000</a>
+
+#}
+{% macro phone(number, options = {}) %}
+    {# Legacy Support #}
+    {% set link = options is not iterable ? options : 1 %}
+    {% set class = options.class is defined ? options.class : 'default' %}
+
+
+    {% import _self as self %}
+    {% set formatted = craft.pjeShared.phoneArray(number) %}
+    {% set string = '' %}
+    {% set tel = '' %}
+    {% set aria = '' %}
+    {% if formatted is iterable %}{% apply spaceless %}
+        {% set string = string ~ formatted.countryCode ? "#{formatted.countryCode}&nbsp;" %}
+        {% set tel = formatted.countryCode ? tel ~ formatted.countryCode %}
+        {% set aria = formatted.countryCode ? tel ~ "#{formatted.countryCode} . " %}
+
+        {% set string = formatted.areaCode ? string ~ "(#{formatted.areaCode})&nbsp;" %}
+        {% set tel = formatted.areaCode ? tel ~ formatted.areaCode %}
+        {% set aria = formatted.areaCode ? aria ~ self.spaceNumber(formatted.areaCode) ~ ' . ' %}
+
+        {% set string = formatted.nextThree ? string ~ "#{formatted.nextThree}-" %}
+        {% set tel = formatted.nextThree ? tel ~ formatted.nextThree %}
+        {% set aria = formatted.nextThree ? aria ~ self.spaceNumber(formatted.nextThree) ~ ' . ' %}
+
+        {% set string = formatted.lastFour ? string ~ formatted.lastFour %}
+        {% set tel = formatted.lastFour ? tel ~ formatted.lastFour %}
+        {% set aria = formatted.lastFour ? aria ~ self.spaceNumber(formatted.lastFour) ~ ' . ' %}
+    {% endapply %}{% else %}
+        {% set string = number %}
+    {% endif %}
+    {% if link != 0 and link != false %}
+        <a href="tel:{{ tel }}" class="{{ class }}" aria-label="{{ aria }}">{{ string|raw }}</a>
+    {% else %}
+        {{ string|raw }}
+    {% endif %}
+{% endmacro %}
+
+{% macro date(dateObject, style = 'long') %}{% apply spaceless %}
+    {%- if style == 'long' %}
+        {{ dateObject|date('F jS Y') }}
+    {%- elseif style == 'meta' %}
+        {{ dateObject|date('D M j G:i:s T Y') }}
+    {%- else %}
+        {{ dateObject|date('F j, Y') }}
+    {%- endif %}
+{% endapply %}{% endmacro %}
+{% macro spaceNumber(number) %}{% apply spaceless%}
+    {% set split =  number|split('') %}
+    {% set string = '' %}
+    {%- for i in split %}
+        {% set string = string ~ i ~ ' ' %}
+    {%- endfor %}
+    {{ string }}
+{% endapply %}{% endmacro %}
+
+{#
+    Caching due to template needing to download this on every request
+    @link: https://craftcms.com/docs/4.x/dev/functions.html#svg
+#}
+{%- macro svg(icon, class='') -%}
+{% apply spaceless %}
+    {%- cache globally using key icon %}
+        {% set path = '@webroot/site-assets/images/icons/' ~ icon ~ '.svg' %}
+        {{ svg(path)|attr({
+            class
+        })}}
+    {% endcache %}
+{% endapply %}{%- endmacro -%}
+
+{#
+Caching due to template needing to download this on every request
+@link: https://craftcms.com/docs/4.x/dev/functions.html#svg
+#}
+{% macro iconEmbedDeprecated(icon, style='solid', class='fill-current w-full') %}{% apply spaceless %}
+    {% deprecated 'iconEmbedDeprecated is deprecated. Use iconEmbed instead, and pass classes and style directly to options object' %}
+    {%- cache globally using key icon ~ style ~ class|replace({' ': '-'}) %} {# not just icon to assure classes are applied #}
+        {%- set svg %}
+            <svg>
+                <use xlink:href="/site-assets/images/icons/{{ style }}.svg#{{ icon }}"></use>
+            </svg>
+        {% endset %}
+        {{- svg|attr({
+            class
+        }) }}
+    {% endcache %}
+{% endapply %}{% endmacro %}
+
+{# TODO: Switch all to this #}
+{% macro iconEmbed(icon, options={}) %}{% apply spaceless %}
+    {% set style = options.style is defined ? options.style : 'solid' %}
+    {% set class = options.class is defined ? options.class : 'fill-current w-4 h-4' %}
+
+    {%- cache globally using key icon ~ style ~ class|replace({' ': '-'}) %} {# not just icon to assure classes are applied #}
+        {%- set svg %}
+            <svg>
+                <use xlink:href="{{ astuteoMix("/site-assets/images/icons/#{style}.svg") }}#{{ icon }}"></use>
+            </svg>
+        {% endset %}
+        {{- svg|attr({
+            class
+        }) }}
+    {% endcache %}
+{% endapply %}{% endmacro %}
+
+{% macro iconSite(icon, options ={}) %}
+    {% set class = options.class is defined ? options.class : 'fill-current w-4 h-4' %}
+    {% set svg %}
+        <svg class="icon fill-current">
+            <use xlink:href="#{{ icon }}" />
+        </svg>
+    {% endset %}
+    {{- svg|attr({
+        class
+    }) }}
+{% endmacro %}
+
+{% macro sectionLink(string, id) %}{% apply spaceless%}
+    section-{{ string|replace({' ': '-'})|url_encode }}-{{ id }}
+{% endapply %}{% endmacro %}

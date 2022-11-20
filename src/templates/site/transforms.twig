@@ -1,0 +1,123 @@
+{#
+ Returns the image URL only
+ @uses: https://github.com/astuteo-llc/astuteo-toolkit/blob/feature/craft-4/docs/imgix-map.md
+
+ tag: {{ transforms.url( image, { width: 450, height: 220} ) }}
+ returns: https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220
+ #}
+{% macro url(image, transforms, options) %}{% apply spaceless %}
+    {%- set options = ({
+        class: null,
+        alt: null,
+        title: null,
+        lazy: true,
+        auto: true
+    }) | merge( options|default({}), true ) %}
+    {{- craft.astuteoToolkit.imgixTransformMap(image, transforms)|raw }}{{ options.auto ? '&auto=format' }}
+{% endapply %}{% endmacro %}
+
+
+{# Not well tested, trying to automate the aspect ratio calculation #}
+{% macro widthHeight(image, transforms, options) %}{% apply spaceless %}
+    {%- set ratio = transforms.ratio ?? null %}
+    {%- set width = transforms.width ?? null %}
+    {%- set height = transforms.height ?? null %}
+
+    {%- if width and ratio %}
+        {%- set height = width * ratio %}
+    {%- elseif height and ratio %}
+        {% set width = height / ratio %}
+    {%- elseif width %}
+        {%- set height = (image.width / width) * image.height %}
+    {%- elseif height %}
+        {%- set width = (image.height / height) * image.width %}
+    {%- endif %}
+
+    {% if width and height %}
+    width="{{ width|round }}"
+    height="{{ height|round }}"
+    {% endif %}
+{% endapply %}{% endmacro %}
+
+
+{#
+ Returns a full image tag default options
+ @uses: https://github.com/astuteo-llc/astuteo-toolkit/blob/feature/craft-4/docs/imgix-map.md
+
+ tag: {{ transforms.url( image, { width: 450, height: 220} ) }}
+ returns: <img src="https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220" alt="Lull 944 E 42" title="Lull 944 E 42" loading="lazy">
+#}
+{% macro image(image, transforms, options) %}{% apply spaceless %}
+    {%- import _self as self %}
+    {%- set options = ({
+        class: null,
+        alt: null,
+        title: null,
+        lazy: true
+    }) | merge( options|default({}), true ) %}
+
+    {% if image %}
+    {{- tag('img', {
+        src: self.url(image, transforms),
+        title: options.title ?? image.title,
+        alt: options.alt ?? image.alt ?? image.title,
+        class: options.class,
+        loading: options.lazy ? "lazy" : "eager"
+    }) }}
+    {% endif %}
+{% endapply %}{% endmacro %}
+
+
+{% macro srcset(image, outputWidths, aspectRatio, additionalTransforms = false) %}{% apply spaceless%}
+    {% import _self as self %}
+
+    {# setup #}
+    {%- set outputWidths = outputWidths | default([640, 1024, 1600]) -%}
+    {%- set srcset = [] -%}
+
+    {# if output width is smaller than or equal to the original image width #}
+    {%- for outputWidth in outputWidths -%}
+        {%- if outputWidth <= image.width -%}
+            {%- if aspectRatio -%}
+                {%- set transformOptions = { width: outputWidth, height: outputWidth * aspectRatio } -%}
+            {%- else -%}
+                {%- set transformOptions = { width: outputWidth } -%}
+            {%- endif -%}
+            {%- if additionalTransforms %}
+                {%- set transformOptions =  transformOptions|merge(additionalTransforms) %}
+            {% endif %}
+            {%- set srcset = srcset | merge([self.url(image, transformOptions)|raw ~ ' ' ~ outputWidth ~ 'w']) -%}
+        {%- endif -%}
+    {%- endfor -%}
+
+    {# output srcset #}
+    {{- srcset | join(', ') | raw -}}
+{% endapply %}{% endmacro %}
+
+{% macro srcsizes(default, bps) %}{% apply spaceless %}
+    {%- set sizes = [] -%}
+    {% for bp in bps|keys %}
+        {% switch bp %}
+        {% case 'xs' %}
+            {% set bpPx = '480px' %}
+        {% case 'sm' %}
+            {% set bpPx = '640px' %}
+        {% case 'md' %}
+            {% set bpPx = '768px' %}
+        {% case 'lg' %}
+            {% set bpPx = '1024px' %}
+        {% case 'xl' %}
+            {% set bpPx = '1280px' %}
+        {% endswitch %}
+        {% set size = 'vw' in bps[bp] ? bps[bp] : bps[bp] ~ 'px' %}
+        {% set sizes = sizes | merge(['(min-width: ' ~ bpPx ~ ') ' ~ size]) %}
+    {% endfor %}
+
+    {# add default size last #}
+    {% set default = 'vw' in default ? default : default ~ 'px' %}
+    {%- set sizes = sizes | merge ([default]) -%}
+
+    {# output sizes #}
+    {{- sizes | join(', ') -}}
+{% endapply %}{% endmacro %}
+

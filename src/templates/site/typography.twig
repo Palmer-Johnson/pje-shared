@@ -1,0 +1,13 @@
+{%- macro widont(string) %}{% apply spaceless %}
+    {%- set htmlHelper = create(
+        "craft\\helpers\\Html"
+    ) %}
+    {{ htmlHelper.widont(string)|raw }}
+{% endapply %}{%- endmacro %}
+
+{#
+@NOTE: Uses custom twig filter in pje-shared/services/spellout.php
+#}
+{%- macro numberToText(integer) %}{%- apply spaceless %}
+    {{ integer|spellout }}
+{%- endapply %}{%- endmacro %}

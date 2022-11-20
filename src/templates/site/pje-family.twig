@@ -1,0 +1,22 @@
+{% import '_pje-shared/macros.twig' as macros %}
+{% set companies = [
+   { site: 'pje', title: 'Palmer Johnson Enterprises', url: 'https://www.palmerjohnsonenterprises.com', logo: 'pje-logo', class: 'h-14' },
+   { site: 'pjpower', title: 'PJ Power', url: 'https://www.pjpower.com', logo: 'pje-logo', class: 'h-14' },
+   { site: 'hamilton', title: 'Hamilton Power Solutions', url: 'https://www.hamiltonpower.com', logo: 'hamilton-logo', class: 'h-7' },
+   { site: 'alterra', title: 'Alterra Power Systems', url: 'https://www.alterrapower.com', logo: 'alterra-logo', class: 'h-9' },
+]%}
+
+{% set show = companies|filter(v => v.site != current) %}
+
+<div class="block mb-12 overflow-hidden lg:mb-0">
+    <h5 class="block mb-4 text-xs tracking-wide uppercase sm:mt-14 text-blue-900 hd">
+        The Palmer Johnson Enterprise Family of Companies
+    </h5>
+    <div class="flex flex-wrap items-center justify-left">
+        {% for company in show %}
+            <a href="{{ company.url }}" class="text-gray-500 transition hover:text-blue-alt-900 mr-7 {{ company.class }}" title="{{ company.title }}" target="_blank">
+                {{ macros.svg(company.logo,  company.class ~ ' fill-current') }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
