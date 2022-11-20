@@ -69,15 +69,15 @@ class Install extends Migration
             'CASCADE',
             'CASCADE'
         );
-        $this->addForeignKey(
-            $this->db->getForeignKeyName('{{%pjeshared_breadcrumbs}}', 'navigationId'),
-            '{{%pjeshared_breadcrumbs}}',
-            'navigationId',
-            '{{%pjeshared_navigation}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+//        $this->addForeignKey(
+//            $this->db->getForeignKeyName('{{%pjeshared_breadcrumbs}}', 'navigationId'),
+//            '{{%pjeshared_breadcrumbs}}',
+//            'navigationId',
+//            '{{%pjeshared_navigation}}',
+//            'id',
+//            'CASCADE',
+//            'CASCADE'
+//        );
     }
 
 
