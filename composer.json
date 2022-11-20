@@ -2,7 +2,7 @@
   "name": "astuteo/pje-shared",
   "description": "Shared PJE Functions",
   "type": "craft-plugin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "proprietary",
   "authors": [
     {
@@ -29,6 +29,9 @@
     "allow-plugins": {
       "yiisoft/yii2-composer": true,
       "craftcms/plugin-installer": true
+    },
+    "platform": {
+      "php": "8.0.2"
     }
   }
 }
