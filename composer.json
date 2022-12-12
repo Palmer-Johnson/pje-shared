@@ -1,37 +1,47 @@
 {
-  "name": "astuteo/pje-shared",
-  "description": "Shared PJE Functions",
-  "type": "craft-plugin",
-  "version": "1.1.4",
-  "license": "proprietary",
-  "authors": [
-    {
-      "name": "Astuteo",
-      "homepage": "https://astuteo.com"
-    }
-  ],
-  "require": {
-    "craftcms/cms": "^4.0.0",
-    "skagarwal/google-places-api": "^2.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "astuteo\\pjeShared\\": "src/"
-    }
-  },
-  "extra": {
-    "name": "PJE Shared",
-    "handle": "pje-shared",
-    "developer": "Astuteo",
-    "developerUrl": "https://astuteo.com"
-  },
-  "config": {
-    "allow-plugins": {
-      "yiisoft/yii2-composer": true,
-      "craftcms/plugin-installer": true
+    "name": "astuteo/pje-shared",
+    "description": "Shared PJE Functions",
+    "type": "craft-plugin",
+    "version": "0.0.1",
+    "scripts": {
+        "changelog": "conventional-changelog",
+        "release": "conventional-changelog --commit",
+        "release:patch": "conventional-changelog --patch --commit",
+        "release:minor": "conventional-changelog --minor --commit",
+        "release:major": "conventional-changelog --major --commit"
     },
-    "platform": {
-      "php": "8.0.2"
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Astuteo",
+            "homepage": "https://astuteo.com"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^4.0.0",
+        "skagarwal/google-places-api": "^2.0"
+    },
+    "require-dev": {
+        "marcocesarato/php-conventional-changelog": "^1.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "astuteo\\pjeShared\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "PJE Shared",
+        "handle": "pje-shared",
+        "developer": "Astuteo",
+        "developerUrl": "https://astuteo.com"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        },
+        "platform": {
+            "php": "8.0.2"
+        }
     }
-  }
 }
