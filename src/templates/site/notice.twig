@@ -5,11 +5,12 @@
             <strong class="mr-2 subpixel-antialiased font-bold uppercase">{{ notification.noticeType }}</strong>
             <span>{{ notification.noticeText }}</span>
             {% if notification.noticeLink %}
-            <a
-                href="{{ notification.noticeLink.getLink() }}"
-                target="{{ notification.noticeLink.getTarget() }}" class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">
-                {{ notification.noticeLink.getText("Learn More") }}
-            </a>
+                <a
+                    href="{{ notification.noticeLink.getUrl() }}"
+                    target="{{ notification.noticeLink.getTarget() }}"
+                    class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">
+                    {{ notification.noticeLink.getText("Learn More") }}
+                </a>
             {% endif %}
         </div>
     {% endset %}
