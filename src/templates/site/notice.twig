@@ -1,0 +1,22 @@
+{% for notification in craft.entries.section('notifications').collect() %}
+
+    {% set notice %}
+        <div class="text-sm text-center">
+            <strong class="mr-2 subpixel-antialiased font-bold uppercase">{{ notification.noticeType }}</strong>
+            <span>{{ notification.noticeText }}</span>
+            {% if notification.noticeLink %}
+            <a
+                href="{{ notification.noticeLink.getLink() }}"
+                target="{{ notification.noticeLink.getTarget() }}" class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">
+                {{ notification.noticeLink.getText("Learn More") }}
+            </a>
+            {% endif %}
+        </div>
+    {% endset %}
+
+    {% include '_wabi-components/notice' with {
+        content: notice,
+        key: 'notification-' ~ notification.id ~ notification.dateUpdated|date('atom'),
+    } only %}
+
+{% endfor %}
