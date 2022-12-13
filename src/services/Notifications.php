@@ -1,9 +1,7 @@
 <?php
-
-namespace astuteo\pjeShared\migrations;
+namespace astuteo\pjeShared\services;
 
 use Craft;
-use craft\db\Migration;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\Tip;
 use craft\models\FieldLayout;
@@ -11,16 +9,13 @@ use craft\models\FieldLayoutTab;
 use craft\models\Section;
 use craft\models\Section_SiteSettings;
 
-/**
- * m221212_193032_notifications migration.
- */
-class m221212_193032_notifications extends Migration
+use yii\base\Component;
+
+
+class Notifications extends Component
 {
-    /**
-     * @inheritdoc
-     */
-    public function safeUp(): bool
-    {
+
+    public function syncNotification() {
         return (
             $this->_createSection() &&
             $this->_createFieldGroup() &&
@@ -30,7 +25,6 @@ class m221212_193032_notifications extends Migration
             $this->_installPlugins()
         );
     }
-
 
     private function _createSection() : bool {
         $section = Craft::$app->sections->getSectionByHandle('notifications');
@@ -119,9 +113,9 @@ class m221212_193032_notifications extends Migration
         $noticeLink->allowCustomText = true;
 
         return (
-          Craft::$app->fields->saveField($noticeType) &&
-          Craft::$app->fields->saveField($noticeText) &&
-          Craft::$app->fields->saveField($noticeLink)
+            Craft::$app->fields->saveField($noticeType) &&
+            Craft::$app->fields->saveField($noticeText) &&
+            Craft::$app->fields->saveField($noticeLink)
         );
     }
 
@@ -144,7 +138,10 @@ class m221212_193032_notifications extends Migration
             [
                 'type' => Tip::class,
                 'style' => 'tip',
-                'tip' => 'If the notification should have a start and end date, use the "Post Date" and "Expiry Date" date settings in the right column.'
+                'tip' => '**Notes**:
+
+- Active notifications will render at the top of the site. Toggle "Enabled" status in right column to hide notification
+- If the notification is time sensitive use the "Post Date" and "Expiry Date" date settings in the right column.'
             ],
             [
                 'type' => CustomField::class,
@@ -165,24 +162,6 @@ class m221212_193032_notifications extends Migration
 
         $tabs[0]->setElements($elements);
         $layout->setTabs($tabs);
-
-
-
-//
-//        $layoutElements = [
-//            $noticeType,
-//            $noticeText,
-//            $noticeLink
-//        ];
-//
-////        $fieldLayout = new FieldLayout();
-//        $tab = new FieldLayoutTab();
-//        $tab->name = 'Content';
-//        $tab->setLayout($fieldLayout);
-//        $tab->setElements($layoutElements);
-//
-//        $fieldLayout->setTabs([$tab]);
-
         return (Craft::$app->fields->saveLayout($layout));
     }
 
@@ -202,14 +181,5 @@ class m221212_193032_notifications extends Migration
         Craft::$app->plugins->installPlugin('wabisoft-components');
         Craft::$app->plugins->installPlugin('wabisoft-framework');
         return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function safeDown(): bool
-    {
-        echo "m221212_193032_notifications cannot be reverted.\n";
-        return false;
     }
 }
