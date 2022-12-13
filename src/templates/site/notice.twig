@@ -1,4 +1,10 @@
 {% for notification in craft.entries.section('notifications').collect() %}
+    {% set classes = {
+        link: 'ml-1 font-bold text-blue-400 transition hover:text-blue-300'
+    }|merge(classes|default({}))
+     %}
+
+
 
     {% set notice %}
         <div class="text-sm text-center">
@@ -8,7 +14,7 @@
                 <a
                     href="{{ notification.noticeLink.getUrl() }}"
                     target="{{ notification.noticeLink.getTarget() }}"
-                    class="ml-1 font-bold text-blue-400 transition hover:text-blue-300">
+                    class="{{ classes.link }}">
                     {{ notification.noticeLink.getText("Learn More") }}
                 </a>
             {% endif %}
