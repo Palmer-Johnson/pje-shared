@@ -6,7 +6,7 @@
         <div class="text-sm text-center">
             <strong class="mr-2 subpixel-antialiased font-bold uppercase">{{ notification.noticeType }}</strong>
             <span>{{ notification.noticeText }}</span>
-            {% if notification.noticeLink %}
+            {% if notification.noticeLink and notification.noticeLink.getUrl|length %}
                 <a
                         href="{{ notification.noticeLink.getUrl() }}"
                         target="{{ notification.noticeLink.getTarget() }}"
