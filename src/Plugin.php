@@ -1,5 +1,6 @@
 <?php
 namespace astuteo\pjeShared;
+use astuteo\pjeShared\models\Settings;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\web\twig\variables\CraftVariable;
 
@@ -21,6 +22,11 @@ class Plugin extends \craft\base\Plugin
     public static string $plugin;
     public static $instance;
     public string $schemaVersion = '1.0.2';
+    
+    protected function createSettingsModel(): ?\craft\base\Model
+    {
+        return new \astuteo\pjeShared\models\Settings();
+    }
 
     public function init()
     {
@@ -68,16 +74,18 @@ class Plugin extends \craft\base\Plugin
          * Watch global saves and record entries that are
          * in our supertable & matrix combo
          */
-        Event::on(
-            GlobalSet::class,
-            GlobalSet::EVENT_AFTER_SAVE,
-            function (ModelEvent $e) {
-                $entry = $e->sender;
-                Breadcrumbs::handleRecordingNav($entry);
-                return;
-            }
-        );
 
+        if($this->getSettings()->syncBreadcrumbs) {
+            Event::on(
+                GlobalSet::class,
+                GlobalSet::EVENT_AFTER_SAVE,
+                function (ModelEvent $e) {
+                    $entry = $e->sender;
+                    Breadcrumbs::handleRecordingNav($entry);
+                    return;
+                }
+            );
+        }
         Event::on(
             View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
@@ -85,6 +93,5 @@ class Plugin extends \craft\base\Plugin
                 $event->roots['_pje-shared'] = __DIR__ . '/templates/site';
             }
         );
-
     }
 }

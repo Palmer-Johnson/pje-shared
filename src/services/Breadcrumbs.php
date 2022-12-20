@@ -6,6 +6,7 @@ use yii\base\Component;
 use craft\elements\Entry;
 use craft\elements\Category;
 use craft\helpers\ArrayHelper;
+use craft\elements\GlobalSet;
 
 
 use astuteo\pjeShared\helpers\HelpersService;
@@ -99,12 +100,15 @@ class Breadcrumbs extends Component
      * navigation
      */
     public static function handleRecordingNav($element) : array|bool {
-        if(
-            !property_exists($element,  'navigation') ||
-            !$element->navigation)
-        {
+        HelpersService::log('reaching here');
+        if(!$element->navigation) {
             return true;
         }
+        HelpersService::log('reaching here 2');
+        if(get_class($element->navigation) !== 'verbb\supertable\elements\db\SuperTableBlockQuery') {
+            return true;
+        }
+        HelpersService::log('we do have a nav item');
         self::processSuperTableNavigation($element->navigation);
         return true;
     }
@@ -231,7 +235,7 @@ class Breadcrumbs extends Component
          * match we may eventually want to try and match this based
          * on context of the page (likely url segment(s))
          */
-         return $records[0];
+        return $records[0];
     }
 
 
