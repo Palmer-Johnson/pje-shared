@@ -99,16 +99,16 @@ class Breadcrumbs extends Component
      * Record any entries that are part of the
      * navigation
      */
+    /**
+     * @throws StaleObjectException
+     */
     public static function handleRecordingNav($element) : array|bool {
-        HelpersService::log('reaching here');
         if(!$element->navigation) {
             return true;
         }
-        HelpersService::log('reaching here 2');
         if(get_class($element->navigation) !== 'verbb\supertable\elements\db\SuperTableBlockQuery') {
             return true;
         }
-        HelpersService::log('we do have a nav item');
         self::processSuperTableNavigation($element->navigation);
         return true;
     }
