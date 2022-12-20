@@ -99,7 +99,10 @@ class Breadcrumbs extends Component
      * navigation
      */
     public static function handleRecordingNav($element) : array|bool {
-        if(!$element->navigation) {
+        if(
+            !property_exists($element,  'navigation') ||
+            !$element->navigation)
+        {
             return true;
         }
         self::processSuperTableNavigation($element->navigation);
