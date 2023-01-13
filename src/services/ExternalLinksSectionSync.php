@@ -51,7 +51,7 @@ class ExternalLinksSectionSync
         // Check if it is already there
         $group = (new \craft\db\Query())
             ->select("id")
-            ->from("fieldgroups")
+            ->from("{{%fieldgroups}}")
             ->where(["name" => "Components"])
             ->one();
 
@@ -68,7 +68,7 @@ class ExternalLinksSectionSync
     private function _createFields() : bool {
         $group = (new \craft\db\Query())
             ->select("id")
-            ->from("fieldgroups")
+            ->from("{{%fieldgroups}}")
             ->where(["name" => "Components"])
             ->one();
 
