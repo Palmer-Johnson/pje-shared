@@ -20,7 +20,8 @@ class ExternalLinksSectionSync
             $this->_createSection() &&
             $this->_createFieldGroup() &&
             $this->_createFields() &&
-            $this->_createFieldLayout()
+            $this->_createFieldLayout() &&
+            $this->_createSection() // resave to catch project config
         );
     }
 
