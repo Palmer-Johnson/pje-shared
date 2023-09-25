@@ -6,6 +6,9 @@ namespace astuteo\pjeShared\helpers;
 use Craft;
 use craft\base\Component;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\FileHelper;
+use yii\base\ErrorException;
+use yii\base\Exception;
 
 
 class HelpersService extends Component
@@ -19,9 +22,13 @@ class HelpersService extends Component
         return DateTimeHelper::toIso8601($now);
     }
 
+    /**
+     * @throws Exception
+     * @throws ErrorException
+     */
     public static function log($message) : void {
         $file = Craft::getAlias('@storage/logs/pje-shared.log');
         $log = date('Y-m-d H:i:s').' '. print_r($message, true)."\n";
-        \craft\helpers\FileHelper::writeToFile($file, $log, ['append' => true]);
+        FileHelper::writeToFile($file, $log, ['append' => true]);
     }
 }
