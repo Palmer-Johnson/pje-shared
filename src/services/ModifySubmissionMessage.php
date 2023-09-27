@@ -16,7 +16,7 @@ class ModifySubmissionMessage
      */
     public static function add($message): string
     {
-        return $message . "\n\nRequested from page: " . Craft::$app->getRequest()->getUrl();
+        return $message . "  \n" . "Requested from page: " . Craft::$app->getRequest()->getUrl();
     }
 
     public function shouldModify($form): bool

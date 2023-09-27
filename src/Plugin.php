@@ -23,6 +23,12 @@ use astuteo\pjeShared\twigextensions\Extension;
 use Solspace\Freeform\Services\SubmissionsService;
 use Solspace\Freeform\Events\Submissions\SubmitEvent;
 
+use Solspace\Freeform\Services\CrmService;
+use Solspace\Freeform\Events\Integrations\PushEvent;
+
+use Solspace\Freeform\Library\Composer\Components\Form;
+use Solspace\Freeform\Events\Forms\ValidationEvent;
+
 class Plugin extends \craft\base\Plugin
 {
     public static string $plugin;
@@ -61,22 +67,6 @@ class Plugin extends \craft\base\Plugin
         }
 
         /*
-         * Watch elements that could be part
-         * of one of the navigations
-         */
-//        Event::on(
-//            Entry::class,
-//            Entry::EVENT_AFTER_SAVE,
-//            function (ModelEvent $e) {
-//                $entry = $e->sender;
-//                if (ElementHelper::isDraftOrRevision($entry)) {
-//                    return;
-//                }
-//                Breadcrumbs::checkIfInNav($entry);
-//            }
-//        );
-
-        /*
          * Watch global saves and record entries that are
          * in our supertable & matrix combo
          */
@@ -93,10 +83,36 @@ class Plugin extends \craft\base\Plugin
             );
         }
         if ($this->getSettings()->mergeUriSalesforce) {
+            // https://docs.solspace.com/craft/freeform/v4/developer/events/crm-integration/#before-data-is-pushed-to-the-crm
+            Event::on(
+                CrmService::class,
+                CrmService::EVENT_BEFORE_PUSH,
+                function (PushEvent $event) {
+
+                    HelpersService::log('EVENT_BEFORE_PUSH');
+                    $integration = $event->getIntegration();
+                    $provider = $integration->getServiceProvider();
+                    HelpersService::log($provider);
+                    if ($provider === 'SalesforceLead') {
+                        $values = $event->getValues();
+                        $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
+                        if (array_key_exists($salesforceFieldName, $values)) {
+                            $updateMessage = ModifySubmissionMessage::add($values[$salesforceFieldName]);
+                            $values[$salesforceFieldName] = $updateMessage;
+                            $event->setValues($values);
+                        }
+                    }
+                    HelpersService::log('UPDATE VALUES');
+                    HelpersService::log($event->getValues());
+                }
+            );
+
+
             Event::on(
                 SubmissionsService::class,
                 SubmissionsService::EVENT_BEFORE_SUBMIT,
                 function (SubmitEvent $event) {
+                    HelpersService::log('EVENT_BEFORE_SUBMIT');
                     $form = $event->getForm();
                     if (!(new services\ModifySubmissionMessage)->shouldModify($form)) {
                         return;
@@ -111,6 +127,19 @@ class Plugin extends \craft\base\Plugin
             );
         }
 
+
+        Event::on(
+            Form::class,
+            Form::EVENT_AFTER_VALIDATE,
+            function (ValidationEvent $event) {
+                $form = $event->getForm();
+
+
+
+                HelpersService::log('EVENT_AFTER_VALIDATE');
+                // do something here...
+            }
+        );
 
 
 
