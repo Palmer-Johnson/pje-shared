@@ -1,0 +1,107 @@
+{% macro make(images, settings = {}) %}
+    {% set settings = ({
+        closeButton: false,
+        showCaption: true,
+        uid: '',
+        class: {
+          grid: 'grid gap-1 grid-cols-2 lg:grid-cols-3 ',
+        },
+        modalClass: {
+            figure: 'p-3 bg-white rounded shadow-xl',
+            wrapper: 'px-6',
+            backdrop: 'bg-black/70',
+            content: 'max-w-full w-[1200px]',
+            image: 'w-full bg-white',
+            caption: 'p-6 text-black text-base antialiased',
+        }
+    }) | merge(settings, true) %}
+    {% import '_pje-shared/transforms.twig' as transforms %}
+    {% set transformsParams = {
+        active: {
+            width: 500,
+            ratio: 0.65
+        },
+        thumbnail: {
+            width: 280,
+            ratio: 0.65
+        },
+        enlarged: {
+            width: 1200
+        }
+    } %}
+
+    {%- set closeButton %}
+        {%- if settings.closeButton %}
+            {{ settings.closeButton }}
+        {%- else %}
+            <a class="btn-close-modal text-blue-600 pj-transition hover:text-blue-900 group" href="#!">
+                <svg class="fill-current w-4 h-4 lg:w-6 lg:h-6 pj-transition group-hover:rotate-90" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                    <path d="M310.6 361.4c12.5 12.5 12.5 32.75 0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3L54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75 0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-105.4 105.4L310.6 361.4z"></path>
+                </svg>
+            </a>
+        {%- endif %}
+    {%- endset %}
+
+    <div class="simple-gallery {{ settings.class.grid }}" x-data="simpleGridGallery">
+        {% for item in images %}
+            <a href="#{{ settings.uid }}-modal-{{ loop.index }}" class="relative overflow-hidden block group hover:z-10">
+                <span class="opacity-0 transition-all duration-100 group-hover:opacity-70 translate-y-4 group-hover:translate-y-0 bg-gray-900/70 rounded-tl absolute bottom-0 right-0 z-10 block text-white">
+                    <svg class="fill-current w-4 h-4 m-2" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24V232h64c13.3 0 24-10.7 24-24s-10.7-24-24-24H232V120c0-13.3-10.7-24-24-24s-24 10.7-24 24v64H120c-13.3 0-24 10.7-24 24s10.7 24 24 24h64v64z"/></svg>
+                </span>
+                <span class="bg-gray-900/5 absolute inset-0 z-10"></span>
+                <img
+                    loading="lazy"
+                    class="object-cover w-full h-full group-hover:scale-105 transition-all duration-150 ease-in-out relative"
+                    src="{{ transforms.url( item.image, transformsParams.thumbnail) }}"
+                    alt="{{ item.alt }}">
+            </a>
+
+            {% html %}{% apply spaceless %}
+            <div
+                id="{{ settings.uid }}-modal-{{ loop.index }}"
+                class="simple-gallery-modal z-[99999] fixed flex isolate inset-0 items-center justify-center {{ settings.modalClass.backdrop }} {{ settings.modalClass.wrapper }}"
+                @hashchange.window="change"
+                x-trap.noscroll.inert="openModal === 'modal-{{ loop.index }}'"
+                @keydown.escape.window="handleEscape()"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="{{ item.image.title }}"
+                x-data="{
+                    openModal: null,
+                    init() {
+                        this.getHash();
+                    },
+                    handleEscape() {
+                        if (this.openModal) {
+                            this.openModal = null;
+                            window.location.hash = '!';
+                        }
+                    },
+                    change() {
+                        this.getHash();
+                    },
+                    getHash() {
+                        this.openModal = window.location.hash ? window.location.hash.replace('#', '') : null;
+                    }
+                }">
+                <a href="#!" class="inset-0 absolute z-0"></a>
+                <div class="relative z-20 m-10 {{ settings.modalClass.content }}">
+                    {{ closeButton }}
+                    <figure class="{{ settings.modalClass.figure }}">
+                        <img src="{{ item.image.url }}" class="{{ settings.modalClass.image }}" alt="{{ item.alt }}">
+                        {% if item.caption and settings.showCaption %}
+                            <figcaption class="rtf {{ settings.modalClass.caption }}">
+                                <strong class="block">
+                                    {{ item.image.title }}
+                                </strong>
+                                {{ item.caption }}
+                            </figcaption>
+                        {% endif %}
+                    </figure>
+                </div>
+            </div>
+        {% endapply %}{% endhtml %}
+        {% endfor %}
+    </div>
+{% endmacro %}
+

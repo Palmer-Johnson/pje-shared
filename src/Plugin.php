@@ -148,6 +148,7 @@ class Plugin extends \craft\base\Plugin
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
             function(RegisterTemplateRootsEvent $event) {
                 $event->roots['_pje-shared'] = __DIR__ . '/templates/site';
+                $event->roots['_pje-components'] = __DIR__ . '/templates/components';
             }
         );
     }
