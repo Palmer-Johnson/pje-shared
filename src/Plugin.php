@@ -82,66 +82,62 @@ class Plugin extends \craft\base\Plugin
                 }
             );
         }
-        if ($this->getSettings()->mergeUriSalesforce) {
-            // https://docs.solspace.com/craft/freeform/v4/developer/events/crm-integration/#before-data-is-pushed-to-the-crm
-            Event::on(
-                CrmService::class,
-                CrmService::EVENT_BEFORE_PUSH,
-                function (PushEvent $event) {
 
-                    HelpersService::log('EVENT_BEFORE_PUSH');
-                    $integration = $event->getIntegration();
-                    $provider = $integration->getServiceProvider();
-                    HelpersService::log($provider);
-                    if ($provider === 'SalesforceLead') {
-                        $values = $event->getValues();
-                        $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
-                        if (array_key_exists($salesforceFieldName, $values)) {
-                            $updateMessage = ModifySubmissionMessage::add($values[$salesforceFieldName]);
-                            $values[$salesforceFieldName] = $updateMessage;
-                            $event->setValues($values);
+        // Only do form parts if Freeform is installed
+        if (class_exists(\Solspace\Freeform\Services\SubmissionsService::class)) {
+            if ($this->getSettings()->mergeUriSalesforce) {
+                // https://docs.solspace.com/craft/freeform/v4/developer/events/crm-integration/#before-data-is-pushed-to-the-crm
+                Event::on(
+                    CrmService::class,
+                    CrmService::EVENT_BEFORE_PUSH,
+                    function (PushEvent $event) {
+                        HelpersService::log('EVENT_BEFORE_PUSH');
+                        $integration = $event->getIntegration();
+                        $provider = $integration->getServiceProvider();
+                        HelpersService::log($provider);
+                        if ($provider === 'SalesforceLead') {
+                            $values = $event->getValues();
+                            $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
+                            if (array_key_exists($salesforceFieldName, $values)) {
+                                $updateMessage = ModifySubmissionMessage::add($values[$salesforceFieldName]);
+                                $values[$salesforceFieldName] = $updateMessage;
+                                $event->setValues($values);
+                            }
                         }
+                        HelpersService::log('UPDATE VALUES');
+                        HelpersService::log($event->getValues());
                     }
-                    HelpersService::log('UPDATE VALUES');
-                    HelpersService::log($event->getValues());
-                }
-            );
+                );
 
+                Event::on(
+                    SubmissionsService::class,
+                    SubmissionsService::EVENT_BEFORE_SUBMIT,
+                    function (SubmitEvent $event) {
+                        HelpersService::log('EVENT_BEFORE_SUBMIT');
+                        $form = $event->getForm();
+                        if (!(new services\ModifySubmissionMessage)->shouldModify($form)) {
+                            return;
+                        }
+                        $submission = $event->getSubmission();
+                        $message = $form->getLayout()->getFieldByHandle('message')?->getValueAsString();
+                        if ($message === null) {
+                            return;
+                        }
+                        $submission->setFormFieldValues(['message' => ModifySubmissionMessage::add($message)], false);
+                    }
+                );
+            }
 
             Event::on(
-                SubmissionsService::class,
-                SubmissionsService::EVENT_BEFORE_SUBMIT,
-                function (SubmitEvent $event) {
-                    HelpersService::log('EVENT_BEFORE_SUBMIT');
+                Form::class,
+                Form::EVENT_AFTER_VALIDATE,
+                function (ValidationEvent $event) {
                     $form = $event->getForm();
-                    if (!(new services\ModifySubmissionMessage)->shouldModify($form)) {
-                        return;
-                    }
-                    $submission = $event->getSubmission();
-                    $message = $form->getLayout()->getFieldByHandle('message')?->getValueAsString();
-                    if ($message === null) {
-                        return;
-                    }
-                    $submission->setFormFieldValues(['message' => ModifySubmissionMessage::add($message)], false);
+                    HelpersService::log('EVENT_AFTER_VALIDATE');
+                    // do something here...
                 }
             );
         }
-
-
-        Event::on(
-            Form::class,
-            Form::EVENT_AFTER_VALIDATE,
-            function (ValidationEvent $event) {
-                $form = $event->getForm();
-
-
-
-                HelpersService::log('EVENT_AFTER_VALIDATE');
-                // do something here...
-            }
-        );
-
-
 
         Event::on(
             View::class,
