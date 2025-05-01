@@ -18,11 +18,11 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^4.0.0",
+        "craftcms/cms": "^4.0.0 || ^5.0.0",
         "skagarwal/google-places-api": "^2.0"
     },
     "require-dev": {
-        "marcocesarato/php-conventional-changelog": "^1.16"
+        "marcocesarato/php-conventional-changelog": "^1.17.2"
     },
     "autoload": {
         "psr-4": {
@@ -39,9 +39,6 @@
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
             "craftcms/plugin-installer": true
-        },
-        "platform": {
-            "php": "8.0.2"
         }
     }
 }
