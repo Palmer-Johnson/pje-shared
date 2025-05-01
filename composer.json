@@ -2,14 +2,13 @@
     "name": "astuteo/pje-shared",
     "description": "Shared PJE Functions",
     "type": "craft-plugin",
-    "version": "1.3.5",
+    "version": "1.3.6",
     "scripts": {
         "changelog": "conventional-changelog",
         "release": "conventional-changelog --commit",
         "release:patch": "conventional-changelog --patch --commit",
         "release:minor": "conventional-changelog --minor --commit",
         "release:major": "conventional-changelog --major --commit",
-
         "release:patch:silent": "php -d \"error_reporting=E_ALL & ~E_DEPRECATED\" ./vendor/bin/conventional-changelog --patch --commit",
         "release:minor:silent": "php -d \"error_reporting=E_ALL & ~E_DEPRECATED\" ./vendor/bin/conventional-changelog --minor --commit",
         "release:major:silent": "php -d \"error_reporting=E_ALL & ~E_DEPRECATED\" ./vendor/bin/conventional-changelog --major --commit"
