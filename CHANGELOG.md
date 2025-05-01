@@ -4,6 +4,11 @@
 All notable changes to this project will be documented in this file.
 <!--- END HEADER -->
 
+## [1.3.7](https://github.com/Palmer-Johnson/pje-shared/compare/v1.3.6...v1.3.7) (2025-05-01)
+
+
+---
+
 ## [1.3.6](https://github.com/Palmer-Johnson/pje-shared/compare/v1.3.5...v1.3.6) (2025-05-01)
 
 
