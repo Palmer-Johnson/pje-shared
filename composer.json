@@ -27,11 +27,6 @@
     "require-dev": {
         "marcocesarato/php-conventional-changelog": "^1.17.2"
     },
-    "autoload": {
-        "psr-4": {
-            "astuteo\\pjeShared\\dd": "src/"
-        }
-    },
     "extra": {
         "name": "PJE Shared",
         "handle": "pje-shared",
