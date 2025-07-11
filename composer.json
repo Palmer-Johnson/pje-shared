@@ -2,7 +2,7 @@
     "name": "astuteo/pje-shared",
     "description": "Shared PJE Functions",
     "type": "craft-plugin",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "scripts": {
         "changelog": "conventional-changelog",
         "release": "conventional-changelog --commit",
@@ -26,6 +26,11 @@
     },
     "require-dev": {
         "marcocesarato/php-conventional-changelog": "^1.17.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "astuteo\\pjeShared\\": "src/"
+        }
     },
     "extra": {
         "name": "PJE Shared",

@@ -34,18 +34,18 @@ returns: https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220
     {%- endif %}
 
     {% if width and height %}
-        width="{{ width|round }}"
-        height="{{ height|round }}"
+    width="{{ width|round }}"
+    height="{{ height|round }}"
     {% endif %}
 {% endapply %}{% endmacro %}
 
 
 {#
-Returns a full image tag default options
-@uses: https://github.com/astuteo-llc/astuteo-toolkit/blob/feature/craft-4/docs/imgix-map.md
+ Returns a full image tag default options
+ @uses: https://github.com/astuteo-llc/astuteo-toolkit/blob/feature/craft-4/docs/imgix-map.md
 
-tag: {{ transforms.url( image, { width: 450, height: 220} ) }}
-returns: <img src="https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220" alt="Lull 944 E 42" title="Lull 944 E 42" loading="lazy">
+ tag: {{ transforms.url( image, { width: 450, height: 220} ) }}
+ returns: <img src="https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220" alt="Lull 944 E 42" title="Lull 944 E 42" loading="lazy">
 #}
 {% macro image(image, transforms, options) %}{% apply spaceless %}
     {%- import _self as self %}
@@ -57,13 +57,13 @@ returns: <img src="https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=2
     }) | merge( options|default({}), true ) %}
 
     {% if image %}
-        {{- tag('img', {
-            src: self.url(image, transforms),
-            title: options.title ?? image.title,
-            alt: options.alt ?? image.alt ?? image.title,
-            class: options.class,
-            loading: options.lazy ? "lazy" : "eager"
-        }) }}
+    {{- tag('img', {
+        src: self.url(image, transforms),
+        title: options.title ?? image.title,
+        alt: options.alt ?? image.alt ?? image.title,
+        class: options.class,
+        loading: options.lazy ? "lazy" : "eager"
+    }) }}
     {% endif %}
 {% endapply %}{% endmacro %}
 
