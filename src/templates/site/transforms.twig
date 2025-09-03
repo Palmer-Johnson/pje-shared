@@ -19,6 +19,9 @@ returns: https://pjpower.imgix.net/website/images/image.jpg?&w=450&h=220
     {# --- GIF bypass --- #}
     {% if image and (image.extension|lower == 'gif' or image.mimeType == 'image/gif') %}
         {{- image.url -}}
+    {# --- SVG bypass --- #}
+    {% elseif image and (image.extension|lower == 'svg' or image.mimeType starts with 'image/svg') %}
+        {{- image.url -}}
     {% else %}
         {{- craft.astuteoToolkit.transformImagerX(image, transforms)|raw -}}
     {% endif %}
