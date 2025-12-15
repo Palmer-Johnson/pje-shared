@@ -8,7 +8,6 @@ use craft\web\twig\variables\CraftVariable;
 
 use Craft;
 use craft\web\View;
-use Solspace\Freeform\Freeform;
 use yii\base\Event;
 use craft\elements\Entry;
 use craft\events\ModelEvent;
@@ -20,14 +19,13 @@ use astuteo\pjeShared\services\Breadcrumbs;
 use astuteo\pjeShared\variables\pjeSharedVariable;
 use astuteo\pjeShared\twigextensions\Extension;
 
+// Freeform 4.x imports (safe to import - checked via isFreeformInstalled())
 use Solspace\Freeform\Services\SubmissionsService;
 use Solspace\Freeform\Events\Submissions\SubmitEvent;
-
 use Solspace\Freeform\Services\CrmService;
 use Solspace\Freeform\Events\Integrations\PushEvent;
 
-use Solspace\Freeform\Library\Composer\Components\Form;
-use Solspace\Freeform\Events\Forms\ValidationEvent;
+// Freeform 5.x classes are referenced by string to avoid fatal errors when v5 is not installed
 
 class Plugin extends \craft\base\Plugin
 {
@@ -38,6 +36,154 @@ class Plugin extends \craft\base\Plugin
     protected function createSettingsModel(): ?\craft\base\Model
     {
         return new \astuteo\pjeShared\models\Settings();
+    }
+
+    /**
+     * Detect if Freeform 5.x is installed (vs 4.x)
+     * Uses string-based class check to avoid fatal errors when v5 is not installed
+     */
+    private function isFreeform5(): bool
+    {
+        // Freeform 5 uses a new Form class location
+        return class_exists('Solspace\\Freeform\\Form\\Form');
+    }
+
+    /**
+     * Check if any version of Freeform is installed
+     */
+    private function isFreeformInstalled(): bool
+    {
+        return class_exists(SubmissionsService::class);
+    }
+
+    /**
+     * Log a message if Freeform event logging is enabled
+     */
+    private function logFreeform(string $message): void
+    {
+        if ($this->getSettings()->logFreeformEvents) {
+            HelpersService::log($message);
+        }
+    }
+
+    /**
+     * Register Freeform event listeners with version-appropriate APIs
+     */
+    private function registerFreeformEvents(): void
+    {
+        if ($this->getSettings()->mergeUriSalesforce) {
+            $this->registerCrmPushEvent();
+            $this->registerSubmissionEvent();
+        }
+    }
+
+    /**
+     * Register CRM push event (different in Freeform 4 vs 5)
+     */
+    private function registerCrmPushEvent(): void
+    {
+        if ($this->isFreeform5()) {
+            // Freeform 5.x: https://docs.solspace.com/craft/freeform/v5/developer/events/crm-integration/
+            $crmInterface = 'Solspace\\Freeform\\Library\\Integrations\\Types\\CRM\\CRMIntegrationInterface';
+            Event::on(
+                $crmInterface,
+                $crmInterface::EVENT_ON_PUSH,
+                function ($event) {
+                    $this->handleCrmPush($event);
+                }
+            );
+        } else {
+            // Freeform 4.x: https://docs.solspace.com/craft/freeform/v4/developer/events/crm-integration/
+            Event::on(
+                CrmService::class,
+                CrmService::EVENT_BEFORE_PUSH,
+                function (PushEvent $event) {
+                    $this->handleCrmPush($event);
+                }
+            );
+        }
+    }
+
+    /**
+     * Handle CRM push event (shared logic for both versions)
+     */
+    private function handleCrmPush($event): void
+    {
+        $this->logFreeform('========================================');
+        $this->logFreeform('PJE-SHARED: CRM PUSH EVENT TRIGGERED');
+        $this->logFreeform('Freeform Version: ' . ($this->isFreeform5() ? '5.x' : '4.x'));
+        $this->logFreeform('========================================');
+
+        $integration = $event->getIntegration();
+
+        // Detect Salesforce integration - method differs between versions
+        if ($this->isFreeform5()) {
+            $providerClass = get_class($integration);
+            $integrationName = method_exists($integration, 'getName') ? $integration->getName() : '';
+            $isSalesforce = str_contains($providerClass, 'Salesforce')
+                         || str_contains(strtolower($integrationName), 'salesforce');
+            $this->logFreeform('Integration: ' . $integrationName . ' (' . $providerClass . ')');
+        } else {
+            $provider = $integration->getServiceProvider();
+            $isSalesforce = $provider === 'SalesforceLead';
+            $this->logFreeform('Provider: ' . $provider);
+        }
+
+        $this->logFreeform('Is Salesforce: ' . ($isSalesforce ? 'YES' : 'NO'));
+
+        if ($isSalesforce) {
+            $values = $event->getValues();
+            $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
+            $this->logFreeform('Looking for field: ' . $salesforceFieldName);
+            if (array_key_exists($salesforceFieldName, $values)) {
+                $originalValue = $values[$salesforceFieldName];
+                $updateMessage = ModifySubmissionMessage::add($originalValue);
+                $values[$salesforceFieldName] = $updateMessage;
+                $event->setValues($values);
+                $this->logFreeform('Modified field value:');
+                $this->logFreeform('  Original: ' . $originalValue);
+                $this->logFreeform('  Modified: ' . $updateMessage);
+            } else {
+                $this->logFreeform('Field not found in values - no modification made');
+            }
+        }
+    }
+
+    /**
+     * Register submission event (same API in both versions)
+     */
+    private function registerSubmissionEvent(): void
+    {
+        Event::on(
+            SubmissionsService::class,
+            SubmissionsService::EVENT_BEFORE_SUBMIT,
+            function (SubmitEvent $event) {
+                $form = $event->getForm();
+                $formHandle = $form->getHandle();
+
+                $this->logFreeform('========================================');
+                $this->logFreeform('PJE-SHARED: SUBMISSION EVENT TRIGGERED');
+                $this->logFreeform('Form: ' . $formHandle);
+                $this->logFreeform('========================================');
+
+                if (!(new services\ModifySubmissionMessage)->shouldModify($form)) {
+                    $this->logFreeform('Form not in mergeUriSalesforce list - skipping');
+                    return;
+                }
+
+                $submission = $event->getSubmission();
+                $message = $form->getLayout()->getFieldByHandle('message')?->getValueAsString();
+                if ($message === null) {
+                    $this->logFreeform('No message field found - skipping');
+                    return;
+                }
+                $modifiedMessage = ModifySubmissionMessage::add($message);
+                $submission->setFormFieldValues(['message' => $modifiedMessage], false);
+                $this->logFreeform('Modified message field:');
+                $this->logFreeform('  Original: ' . $message);
+                $this->logFreeform('  Modified: ' . $modifiedMessage);
+            }
+        );
     }
 
     public function init()
@@ -84,59 +230,12 @@ class Plugin extends \craft\base\Plugin
         }
 
         // Only do form parts if Freeform is installed
-        if (class_exists(\Solspace\Freeform\Services\SubmissionsService::class)) {
-            if ($this->getSettings()->mergeUriSalesforce) {
-                // https://docs.solspace.com/craft/freeform/v4/developer/events/crm-integration/#before-data-is-pushed-to-the-crm
-                Event::on(
-                    CrmService::class,
-                    CrmService::EVENT_BEFORE_PUSH,
-                    function (PushEvent $event) {
-                        HelpersService::log('EVENT_BEFORE_PUSH');
-                        $integration = $event->getIntegration();
-                        $provider = $integration->getServiceProvider();
-                        HelpersService::log($provider);
-                        if ($provider === 'SalesforceLead') {
-                            $values = $event->getValues();
-                            $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
-                            if (array_key_exists($salesforceFieldName, $values)) {
-                                $updateMessage = ModifySubmissionMessage::add($values[$salesforceFieldName]);
-                                $values[$salesforceFieldName] = $updateMessage;
-                                $event->setValues($values);
-                            }
-                        }
-                        HelpersService::log('UPDATE VALUES');
-                        HelpersService::log($event->getValues());
-                    }
-                );
-
-                Event::on(
-                    SubmissionsService::class,
-                    SubmissionsService::EVENT_BEFORE_SUBMIT,
-                    function (SubmitEvent $event) {
-                        HelpersService::log('EVENT_BEFORE_SUBMIT');
-                        $form = $event->getForm();
-                        if (!(new services\ModifySubmissionMessage)->shouldModify($form)) {
-                            return;
-                        }
-                        $submission = $event->getSubmission();
-                        $message = $form->getLayout()->getFieldByHandle('message')?->getValueAsString();
-                        if ($message === null) {
-                            return;
-                        }
-                        $submission->setFormFieldValues(['message' => ModifySubmissionMessage::add($message)], false);
-                    }
-                );
-            }
-
-            Event::on(
-                Form::class,
-                Form::EVENT_AFTER_VALIDATE,
-                function (ValidationEvent $event) {
-                    $form = $event->getForm();
-                    HelpersService::log('EVENT_AFTER_VALIDATE');
-                    // do something here...
-                }
-            );
+        if ($this->isFreeformInstalled()) {
+            $version = $this->isFreeform5() ? '5.x' : '4.x';
+            $settings = $this->getSettings()->mergeUriSalesforce;
+            $this->logFreeform('PJE-SHARED: Freeform ' . $version . ' detected, registering events');
+            $this->logFreeform('PJE-SHARED: mergeUriSalesforce setting = ' . json_encode($settings));
+            $this->registerFreeformEvents();
         }
 
         Event::on(
