@@ -172,7 +172,7 @@ class Plugin extends \craft\base\Plugin
                 }
 
                 $submission = $event->getSubmission();
-                $message = $form->getLayout()->getFieldByHandle('message')?->getValueAsString();
+                $message = $form->getLayout()->getField('message')?->getValueAsString();
                 if ($message === null) {
                     $this->logFreeform('No message field found - skipping');
                     return;
