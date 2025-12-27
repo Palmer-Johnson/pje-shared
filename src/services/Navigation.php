@@ -139,7 +139,7 @@ class Navigation extends Component
 
 
     public static function getMatrixBlockChildren($row, $level = null) {
-        $blockType = Craft::$app->getMatrix()->getBlockTypeById($row->typeId);
+        $blockType = Craft::$app->getEntries()->getEntryTypeById($row->typeId);
         $blockHandle = $blockType->handle;
         if($blockHandle === 'pages') {
             return self::getPages($row);
