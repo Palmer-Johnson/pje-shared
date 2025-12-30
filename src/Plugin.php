@@ -1,18 +1,20 @@
 <?php
 namespace astuteo\pjeShared;
+
 use astuteo\pjeShared\helpers\HelpersService;
 use astuteo\pjeShared\models\Settings;
 use astuteo\pjeShared\services\ModifySubmissionMessage;
 use craft\events\RegisterTemplateRootsEvent;
+use craft\log\MonologTarget;
 use craft\web\twig\variables\CraftVariable;
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
 
 use Craft;
 use craft\web\View;
 use yii\base\Event;
-use craft\elements\Entry;
 use craft\events\ModelEvent;
 use craft\elements\GlobalSet;
-use craft\helpers\ElementHelper;
 use craft\console\Application as ConsoleApplication;
 
 use astuteo\pjeShared\services\Breadcrumbs;
@@ -56,13 +58,10 @@ class Plugin extends \craft\base\Plugin
         return class_exists(SubmissionsService::class);
     }
 
-    /**
-     * Log a message if Freeform event logging is enabled
-     */
     private function logFreeform(string $message): void
     {
         if ($this->getSettings()->logFreeformEvents) {
-            HelpersService::log($message);
+            HelpersService::info($message);
         }
     }
 
@@ -186,10 +185,29 @@ class Plugin extends \craft\base\Plugin
         );
     }
 
+    private function registerLogTarget(): void
+    {
+        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+            'name' => 'pje-shared',
+            'categories' => ['pje-shared'],
+            'level' => LogLevel::INFO,
+            'logContext' => false,
+            'allowLineBreaks' => true,
+            'formatter' => new LineFormatter(
+                format: "[%datetime%] %message%\n",
+                dateFormat: 'Y-m-d H:i:s',
+                allowInlineLineBreaks: true,
+                ignoreEmptyContextAndExtra: true,
+            ),
+        ]);
+    }
+
     public function init()
     {
         parent::init();
         self::$instance = $this;
+
+        $this->registerLogTarget();
 
         if (Craft::$app->request->getIsSiteRequest()) {
             Craft::$app->view->registerTwigExtension(new Extension());
