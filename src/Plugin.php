@@ -133,17 +133,16 @@ class Plugin extends \craft\base\Plugin
         if ($isSalesforce) {
             $values = $event->getValues();
             $salesforceFieldName = Plugin::getInstance()->getSettings()->salesforceFieldName;
-            $this->logFreeform('Looking for field: ' . $salesforceFieldName);
+            HelpersService::warning('Looking for field: ' . $salesforceFieldName);
             if (array_key_exists($salesforceFieldName, $values)) {
                 $originalValue = $values[$salesforceFieldName];
                 $updateMessage = ModifySubmissionMessage::add($originalValue);
                 $values[$salesforceFieldName] = $updateMessage;
                 $event->setValues($values);
-                $this->logFreeform('Modified field value:');
-                $this->logFreeform('  Original: ' . $originalValue);
-                $this->logFreeform('  Modified: ' . $updateMessage);
+                HelpersService::warning('Modified field - Original: ' . $originalValue);
+                HelpersService::warning('Modified field - Updated: ' . $updateMessage);
             } else {
-                $this->logFreeform('Field not found in values - no modification made');
+                HelpersService::warning('Field not found in values - no modification made');
             }
         }
     }
