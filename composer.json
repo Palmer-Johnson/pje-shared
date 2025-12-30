@@ -2,7 +2,7 @@
     "name": "astuteo/pje-shared",
     "description": "Shared PJE Functions",
     "type": "craft-plugin",
-    "version": "4.0.1",
+    "version": "4.0.2",
     "scripts": {
         "changelog": "conventional-changelog",
         "release": "conventional-changelog --commit",
