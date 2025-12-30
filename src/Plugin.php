@@ -177,9 +177,8 @@ class Plugin extends \craft\base\Plugin
                 }
                 $modifiedMessage = ModifySubmissionMessage::add($message);
                 $submission->setFormFieldValues(['message' => $modifiedMessage], false);
-                $this->logFreeform('Modified message field:');
-                $this->logFreeform('  Original: ' . $message);
-                $this->logFreeform('  Modified: ' . $modifiedMessage);
+                HelpersService::warning('Modified message field - Original: ' . $message);
+                HelpersService::warning('Modified message field - Updated: ' . $modifiedMessage);
             }
         );
     }

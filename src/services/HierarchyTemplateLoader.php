@@ -2,6 +2,7 @@
 
 namespace astuteo\pjeShared\services;
 
+use astuteo\pjeShared\helpers\HelpersService;
 use Craft;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -30,10 +31,7 @@ class HierarchyTemplateLoader
                 return $content;
             }
         }
-        Craft::error(
-            "Error locating any templates",
-            __METHOD__
-        );
+        HelpersService::error('Error locating any templates in: ' . $basePath);
         if($isDev) {
             return '<div><strong>Unable to find templates in "<span style="color: red;">' . $basePath  . '</span>" directory. Templates Dump:</strong></div>' . '<div style="font-size: 12px; margin-bottom: 20px; font-family: monospace;">' . Json::encode($templates) . '</div>';
         }
