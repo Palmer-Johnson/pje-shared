@@ -2,12 +2,11 @@
 
 namespace astuteo\pjeShared\services;
 
+use craft\fields\data\LinkData;
+
 class NormalizeLinks
 {
 
-    /*
-     * @uses: https://plugins.craftcms.com/typedlinkfield
-     */
     const EXTERNAL_SECTIONS = ['externalLinks'];
     const DEFAULT_LABEL = 'Learn More';
 
@@ -24,19 +23,17 @@ class NormalizeLinks
      * Item can be one of the following:
      * - URL string
      * - Craft element
-     * - Link field
+     * - Native Link field (LinkData)
      * - Twig Object
      */
     private static function getUrl($item) {
-        /*
-         * Entry or Category
-         */
+        if ($item instanceof LinkData) {
+            return $item->getUrl() ?? false;
+        }
+
         $url = $item->url ?? false;
         if ($url) return $url;
 
-        /*
-         * Typed Link Field
-         */
         if(!is_array($item) && method_exists($item,'getUrl')) {
             $url = $item->getUrl() ?? false;
         }
@@ -49,11 +46,10 @@ class NormalizeLinks
     }
 
     private static function getTarget($item) {
-        /*
-         * If this is an entry that's not in the EXTERNAL_SECTIONS
-         * sections array, default it to null otherwise set it to
-         * blank. Otherwise, check for the setting key directly
-         */
+        if ($item instanceof LinkData) {
+            return $item->target;
+        }
+
         $handle = $item->section->handle ?? false;
         if(!$handle) {
             $handle = $item->group->handle ?? false;
@@ -67,9 +63,6 @@ class NormalizeLinks
         }
 
         $target = false;
-        /*
-         * Typed Link Field
-         */
         if(!is_array($item) && method_exists($item,'getTarget')) {
             $target = $item->getTarget() ?? false;
         }
@@ -79,15 +72,13 @@ class NormalizeLinks
     }
 
     private static function getTitle($item) {
-        /*
-         * Entry or Category
-         */
+        if ($item instanceof LinkData) {
+            return $item->getLabel() ?? self::DEFAULT_LABEL;
+        }
+
         $title = $item->navigationLabel ?? $item->title ?? false;
         if($title) return $title;
 
-        /*
-         * Typed Link Field
-         */
         if(!is_array($item) && method_exists($item,'getText')) {
             $title = $item->getText() ?? false;
         }
